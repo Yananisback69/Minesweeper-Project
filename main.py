@@ -1,121 +1,54 @@
-import pygame
-import sys
-import button
+class TileFunction:
+            def __init__(self, x, y, image, w, h):
+                self.image = pygame.transform.scale(image, (w, h))
+                self.rect = self.image.get_rect()
+                self.rect.topleft = (x, y)
+                self.state = "normal"
+                self.is_mine = False
+                self.adjacent_mines = 0
+                # self.tile_blank = False
 
-# Animation of title 
-class Player(pygame.sprite.Sprite):
-    def __init__(self,pos_x,pos_y):
-      super().__init__()
-      self.sprite = []
-      self.sprite.append(pygame.image.load("C:/Users/User\Documents/Year 12/Software Design and Development Y12/Group Major- Minesweeper/assets/pixil-frame-0.png"))
-      self.sprite.append(pygame.image.load("C:/Users/User\Documents/Year 12/Software Design and Development Y12/Group Major- Minesweeper/assets/pixil-frame-1.png"))
-      self.sprite.append(pygame.image.load("C:/Users/User\Documents/Year 12/Software Design and Development Y12/Group Major- Minesweeper/assets/pixil-frame-2.png"))
-      self.sprite.append(pygame.image.load("C:/Users/User\Documents/Year 12/Software Design and Development Y12/Group Major- Minesweeper/assets/pixil-frame-3.png"))
-      self.sprite.append(pygame.image.load("C:/Users/User\Documents/Year 12/Software Design and Development Y12/Group Major- Minesweeper/assets/pixil-frame-4.png"))
-      self.sprite.append(pygame.image.load("C:/Users/User\Documents/Year 12/Software Design and Development Y12/Group Major- Minesweeper/assets/pixil-frame-5.png"))
-      self.sprite.append(pygame.image.load("C:/Users/User\Documents/Year 12/Software Design and Development Y12/Group Major- Minesweeper/assets/pixil-frame-6.png"))
-      self.sprite.append(pygame.image.load("C:/Users/User\Documents/Year 12/Software Design and Development Y12/Group Major- Minesweeper/assets/pixil-frame-7.png"))
-      self.sprite.append(pygame.image.load("C:/Users/User\Documents/Year 12/Software Design and Development Y12/Group Major- Minesweeper/assets/pixil-frame-8.png"))
-      self.current_sprite = 0
-      self.image = self.sprite[self.current_sprite]
+            def draw(self, surface):
 
-      self.rect = self.image.get_rect()
-      self.rect.topleft = [pos_x,pos_y]
+                global clicked
+                global clicks
 
-    def update(self):
-        self.current_sprite += 0.2 # slows down the animation 
+                action = False
 
-        if self.current_sprite >= len(self.sprite):
-            self.current_sprite = 0
+                # get mouse position
+                
+                pos = pygame.mouse.get_pos()
+                
+                # flag mouse over button
 
-        self.image = self.sprite[int(self.current_sprite)]
+                if self.rect.collidepoint(pos):
+                    
+                    # Left Click!
+                    if pygame.mouse.get_pressed()[0] == 1 and self.state == "normal":
+                        clicks += 1
+                        print(clicks)
 
+                        tile_row = int(pos[1]//100) + 1
+                        tile_col = int(pos[0]//100) + 1
+                    
+                        clicked = (tile_row, tile_col)
 
+                        dug.add(clicked)
 
+                        if clicks == 0 or clicks == 1:  # Check if it's the first or second click
+                            if self.is_mine or self.adjacent_mines > 0:
+                                reset_grid()
+                            else:
+                                clear_grid(tile, dug)
+                        else:
+                            if self.is_mine:
+                                self.image = bomb_tile  # Change to bomb_tile if it's a mine
+                            elif self.adjacent_mines > 0:
+                                self.image = number_tiles[self.adjacent_mines - 1]  # Change to number_tile based on adjacent mines.-1 is there to match the image from the list 'number_tiles'
+                                dug.add(clicked)
+                            elif self.adjacent_mines == 0:
+                                clear_grid(tile, dug)
 
-
-
-
-
-
-
-# This calls the __init__ functions of every pygame module
-pygame.init()
-
-# Loading background image
-background_img = pygame.image.load("C:/Users/User\Documents/Year 12/Software Design and Development Y12/Group Major- Minesweeper/assets/pixel_night.jpg")
-
-
-
-
-#Button images load
-start_image = pygame.image.load('C:/Users/User\Documents/Year 12/Software Design and Development Y12/Group Major- Minesweeper/assets/Start.png')
-difficulty_image = pygame.image.load('C:/Users/User\Documents/Year 12/Software Design and Development Y12/Group Major- Minesweeper/assets/Difficulty.png')
-help_image = pygame.image.load('C:/Users/User\Documents/Year 12/Software Design and Development Y12/Group Major- Minesweeper/assets/Help.png')
-
-
-# Creating button instances
-start_button = button.Button(300,200, start_image, 4)
-difficulty_button = button.Button(250,300, difficulty_image, 4)
-help_button = button.Button(300,400, help_image, 4)
-
-
-
-
-
-
-#Creating Sprites
-moving_sprites = pygame.sprite.Group()
-player = Player(250,50)
-moving_sprites.add(player)
-
-
-
-# Setting screen size
-screen = pygame.display.set_mode((900,600))
-pygame.display.set_caption("Minesweeper")
-timer = pygame.time.Clock()
-
-i = 0
-#Main Loop
-running = True
-while running:
-    timer.tick(60)
-    screen.fill("white")
-    screen.blit(background_img,(i,0))
-    screen.blit(background_img, (900 +i, 0))
-
-    # Conditions for the buttons 
-    if start_button.draw(screen):
-        print("START!")
-
-    if difficulty_button.draw(screen):
-        print("DIFFICULTY")
-
-    if help_button.draw(screen):
-        print("CANNOT HELP")
-
-
-    moving_sprites.draw(screen)
-    if i == -900:
-        screen.blit(background_img, (900 +i, 0))
-        i = 0
-
-    pygame.display.flip()
-    i -= 2
-
-    moving_sprites.update()
-
-    
-    
-    pygame.display.flip()
-    
- 
-# Did the user click the window to close the button
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-    
-pygame.quit()
-
-
+                        self.image = pygame.transform.scale(self.image, (100, 100))  # resizing the image
+                        self.state = "clicked"  # now can't click it again
+                        action = True
