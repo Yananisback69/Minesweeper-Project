@@ -23,7 +23,9 @@ for i in range(1,6):
     bg_width = bg_images[0].get_width()
 
 
-
+#End Game Image
+end = pygame.image.load(f"assets/Gameover.png").convert_alpha()
+end = pygame.transform.scale(end, (500, 500))
 
 
 clicked = ()
@@ -34,7 +36,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self,pos_x,pos_y):
       super().__init__()
       self.sprite = []
-      self.sprite.append(pygame.image.load("assets/pixil-frame-0.png"))
+      #self.sprite.append(pygame.image.load("assets/pixil-frame-0.png"))
       self.sprite.append(pygame.image.load("assets/pixil-frame-1.png"))
       self.sprite.append(pygame.image.load("assets/pixil-frame-2.png"))
       self.sprite.append(pygame.image.load("assets/pixil-frame-3.png"))
@@ -163,13 +165,15 @@ def draw_bg(surface):
 
         pygame.display.flip()
     
-
+game_over = False
 
 i = 0
 #Main Loop
 running = True
 while running:
     timer.tick(60)
+    
+    
 
     
     draw_bg(bg_screen)# drawing the background onto the backscreen
@@ -177,13 +181,12 @@ while running:
         
 
     # blit a clear screen ontop of the previous screen,  this allows seperation between the moving screen and buttons preventing flickering
-    
     screen.blit(bg_screen, (0, 0))
 
 
     num -= 1
 
-    if start_button.draw(screen): 
+    if start_button.draw(screen): # Start Button Function 
         print("START") 
 
 
@@ -201,7 +204,7 @@ while running:
         tile_gap = 1  # this is how you can tell the tiles apart
 
         tile_size = 50  
-        tiles_per_row = 10 ###############################################################################
+        tiles_per_row = 10 
 
         width = tiles_per_row * (tile_size + tile_gap)
 
@@ -232,8 +235,8 @@ while running:
 
             for i in range(-1, 2):
                 for j in range(-1, 2):
-                    if 0 <= row + i < 10 and 0 <= col + j < 15:
-                        index = (row + i) * 15 + (col + j)
+                    if 0 <= row + i < 10 and 0 <= col + j < 10:
+                        index = (row + i) * 10 + (col + j)
                         neighbor_tile = tiles[index]
 
                         if neighbor_tile.adjacent_mines == 0 and (row + i, col + j) not in dug:
@@ -253,16 +256,16 @@ while running:
 
 
         for row in range(10):
-            for col in range(15):
+            for col in range(10):
                 tile = TileFunction(col * (tile_size + tile_gap), row * (tile_size + tile_gap), normal_tile, tile_size, tile_size)
                 tiles.append(tile)
 
         def mines_and_numbers(tiles, num_mines):
-            mine_positions = random.sample([(row, col) for row in range(10) for col in range(15)], num_mines)
+            mine_positions = random.sample([(row, col) for row in range(10) for col in range(10)], num_mines)
             
             for row, col in mine_positions:
                 # Calculate the index of the tile based on row and col
-                index = row * 15 + col
+                index = row * 10 + col
                 tiles[index].is_mine = True
             
             print(mine_positions)
@@ -274,7 +277,7 @@ while running:
                 
                 for i in range(-1, 2): # Creates a 3*3 grid
                     for j in range(-1, 2):
-                        if 0 <= row + i < 10 and 0 <= col + j < 15:   # Checks to see if neighbouring tile is within the screen boundary
+                        if 0 <= row + i < 10 and 0 <= col + j < 10:   # Checks to see if neighbouring tile is within the screen boundary
                             index = (row + i) * 10 + (col + j)   # Calculates index of neighbouring tile
                             if tiles[index].is_mine:    # Checks if neighbouring tile is a mine
                                 tile.adjacent_mines += 1    # Increments current tile adjacent_mines attribute by 1
@@ -301,7 +304,7 @@ while running:
             # If there's a clicked tile, update its state and image
             if clicked:
                 row, col = clicked
-                index = (row - 1) * 15 + (col - 1)
+                index = (row - 1) * 10 + (col - 1)
                 tile = tiles[index]
                 if tile.is_mine:
                     reset_grid()
@@ -317,6 +320,7 @@ while running:
 
         # Randomly place mines and assort numbers
         mines_and_numbers(tiles, num_mines)
+
 
         right_click_pressed = False
         while True:
@@ -336,8 +340,20 @@ while running:
                                 if tile.rect.collidepoint(event.pos):  # Check which tile was clicked
                                     if tile.is_mine and clicks != 0:
                                         print("You clicked on a mine!")
-                                        pygame.quit()
-                                        exit()           
+                                        for tile in tiles:
+                                            if tile.is_mine:
+                                                tile.image = bomb_tile
+                                                tile.image = pygame.transform.scale(tile.image, (tile_size,tile_size))
+                                            """elif tile not in dug():
+                                                tile.state = "clicked"
+                                                tile.image = clicked_tile
+                                                tile.image = pygame.transform.scale(tile.image, (tile_size,tile_size))"""
+
+                                        game_over = True
+                                        
+                                        
+
+                                        
 
                     elif event.type == pygame.MOUSEBUTTONUP:
                         if event.button == 3:  # Right mouse button released
@@ -365,7 +381,9 @@ while running:
                 
                 pygame.display.flip()
 
-
+    if game_over == True:
+        screen.blit(end, (100,100))
+    
 
                 
 
