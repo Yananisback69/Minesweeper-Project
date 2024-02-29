@@ -140,7 +140,8 @@ moving_sprites.add(player)
 
 num = 0
 
-buffer = pygame.Surface((1066,600))# clear secondary background. 
+button_screen = pygame.Surface((1066,600))# clear secondary background. 
+bg_screen = pygame.Surface((1066, 600))
 
 # Drawing the the animated surface, Credits to the youtube video that showed me how, can be found in the documents. 
 def draw_bg(surface):
@@ -163,19 +164,26 @@ def draw_bg(surface):
         pygame.display.flip()
     
 
+
 i = 0
 #Main Loop
 running = True
 while running:
     timer.tick(60)
-    
 
     
-    draw_bg(screen)# drawing the background onto the backscreen
+    draw_bg(bg_screen)# drawing the background onto the backscreen
     
-    
+        
 
-    if start_button.draw(buffer): 
+    # blit a clear screen ontop of the previous screen,  this allows seperation between the moving screen and buttons preventing flickering
+    
+    screen.blit(bg_screen, (0, 0))
+
+
+    num -= 1
+
+    if start_button.draw(screen): 
         print("START") 
 
 
@@ -361,30 +369,17 @@ while running:
 
                 
 
-    if difficulty_button.draw(buffer):
+    if difficulty_button.draw(screen):
         print("DIFFICULTY")
 
-    if help_button.draw(buffer):
+    if help_button.draw(screen):
         print("CANNOT HELP")
     
-
-    screen.blit(buffer, (0, 0)) # blit a clear screen ontop of the previous screen,  this allows seperation between the moving screen and buttons preventing flickering
-
-
-    
-
     pygame.display.flip()
 
 
 
-    num -= 1
-
             
-
-
-
-
-    
 
     
 # Did the user click the window to close the button
