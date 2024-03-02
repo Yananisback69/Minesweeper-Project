@@ -18,7 +18,7 @@ timer = pygame.time.Clock()
 #bg images
 bg_images = []
 for i in range(1,6):
-    bg_image = pygame.image.load(f"bgs/{i}.png").convert_alpha()
+    bg_image = pygame.image.load(f"bg_images/bg_images/{i}.png").convert_alpha()
     bg_images.append(bg_image)
     bg_width = bg_images[0].get_width()
 
@@ -143,6 +143,7 @@ moving_sprites.add(player)
 
 
 num = 0
+correct_flag = 0
 
 end_screen = pygame.Surface((1066,600), pygame.SRCALPHA)# clear secondary background. 
 bg_screen = pygame.Surface((1066, 600))
@@ -189,6 +190,7 @@ def convert_bomb_tile():
 game_over = False
 show_end  = False
 loop_once_everygame = False
+tile_print = True
 
 i = 0
 #Main Loop
@@ -350,9 +352,14 @@ while running:
 
 
         right_click_pressed = False
-        while True:
+        win_displayed = False
+
+
+        # Tile while loop 
+        while tile_print == True:
                 
-                #if loop_once_everygame == False:##################################################################################################################################
+                all_mines_revealed = all(tile.is_mine for tile in tiles)
+                
                 for tile in tiles: # Draws the tiles onto the screen2
                         action = tile.draw(screen2)
 
@@ -370,9 +377,24 @@ while running:
                                 if tile.rect.collidepoint(event.pos):  # Check which tile was clicked
                                     if tile.is_mine and clicks != 0:
                                         print("You clicked on a mine!")
-                                        convert_bomb_tile()
+                                        game_over = True 
+                                        for cube1 in tiles:
+                                            print(all_mines_revealed)
+                                            if cube1.is_mine: 
+                                                cube1.image = bomb_tile
+                                                cube1.image = pygame.transform.scale(cube1.image, (tile_size,tile_size))
+                                                cube1.state = 'clicked'
+
+                                            else:                           
+                                                cube1.state = 'clicked'
+
+
+
                                         pygame.display.flip()
-                                        #game_over = True          
+
+                                        
+                                        
+                                                 
 
                     elif event.type == pygame.MOUSEBUTTONUP:
                         if event.button == 3:  # Right mouse button released
@@ -390,42 +412,48 @@ while running:
                                     tile.image = pygame.transform.scale(tile.image, (tile_size,tile_size))  # resizing the image
                                     tile.state = "flagged"  # Now it's flagged
                                     print("flagged")
+                                    if tile.is_mine:
+                                        correct_flag += 1
+                                        print("correct flag:", correct_flag)
                                 elif tile.state == "flagged":  # Right-click to unflag
                                     tile.image = normal_tile  # changing state back to normal state
                                     tile.image = pygame.transform.scale(tile.image, (tile_size,tile_size))  # resizing the image
                                     tile.state = "normal"  # when the flag is unflagged
                                     print("unflagged")
-
+                                    if tile.is_mine:
+                                        correct_flag -= 1
+                                        print("correct flag:", correct_flag)
                 
+                    if correct_flag == num_mines and not win_displayed:  # Check if all flags are placed correctly
+                        # Reveal all mines
+                        convert_bomb_tile()
+
+                        # Disable further clicks
+                        for tile in tiles:
+                            tile.state = "clicked"
+
+                        # Print "You win"
+                        print("You win")
+                        running = False
+                        show_end = True
+
+                        win_displayed = True
+
+
 
                     pygame.display.flip()
+                        
                     if game_over == True and loop_once_everygame == False:
-                        loop_once_everygame = True# only allows one loop cause then the mines cannot be clicked again to make the backscreen more white
-
-
-                        
-                        
+                        #loop_once_everygame = True# only allows one loop cause then the mines cannot be clicked again to make the backscreen more white
 
                         # Drawing onto the overlay surface
                         end_screen.fill((255, 255, 255, 160))  # Fill with semi-transparent white color
 
                         # Blit the overlay surface onto the main screen
                         screen.blit(end_screen, (0, 0))
-
-                        convert_bomb_tile()
                         
+                
                         
-                        
-
-                        running = False
-                        game_over = False
-                        show_end = True
-                        pygame.display.flip()
-
-
-
-                    if show_end == True:
-                        pygame.time.delay(1000)
 
                         # Drawing the screen buttons
                         screen.blit(end, (50,0))
