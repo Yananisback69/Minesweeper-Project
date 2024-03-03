@@ -27,6 +27,20 @@ for i in range(1,6):
 end = pygame.image.load(f"assets/Gameover.png").convert_alpha()
 end = pygame.transform.scale(end, (400, 100))
 
+normal_tile = pygame.image.load("assets/tile1.png")
+bomb_tile = pygame.image.load("assets/bomb1.png")
+flag_tile = pygame.image.load("assets/flag tile.png")
+clicked_tile = pygame.image.load("assets/tile broken.png")
+number_tiles = [
+            pygame.image.load("assets/1 tile.png"),
+            pygame.image.load("assets/2 tile.png"),
+            pygame.image.load("assets/3 tile.png"),
+            pygame.image.load("assets/4 tile.png"),
+            pygame.image.load("assets/5 tile.png"),
+            pygame.image.load("assets/6 tile.png"),
+            pygame.image.load("assets/7 tile.png"),
+            pygame.image.load("assets/8 tile.png")
+        ]
 
 clicked = ()
 dug = set()
@@ -171,7 +185,7 @@ def draw_bg(surface):
 
 
 def convert_bomb_tile():
-     for cube1 in tiles:
+    for cube1 in tiles:
         if cube1.is_mine: 
             cube1.image = bomb_tile
             cube1.image = pygame.transform.scale(cube1.image, (tile_size,tile_size))
@@ -180,79 +194,11 @@ def convert_bomb_tile():
         else:                           
             cube1.state = 'clicked'
 
+    for tile in tiles: # Draws the tiles onto the screen2
+        action = tile.draw(screen2)
 
 
-
-
-
-
-
-game_over = False
-show_end  = False
-loop_once_everygame = False
-tile_print = True
-
-i = 0
-#Main Loop
-running = True
-while running:
-    timer.tick(60)
-    
-    
-
-    
-    draw_bg(bg_screen)# drawing the background onto the backscreen
-    
-        
-
-    # blit a clear screen ontop of the previous screen,  this allows seperation between the moving screen and buttons preventing flickering
-    screen.blit(bg_screen, (0, 0))
-
-
-    num -= 1
-
-    if start_button.draw(screen): # Start Button Function 
-        print("START") 
-
-
-        pygame.time.delay(200)
-        screen2 = pygame.display.set_mode((1066, 600)) # Creating the screen2
-        pygame.display.set_caption('Minesweeper')
-        screen2.fill("black")
-        num_mines = 24
-
-        clicks = 0
-        resets = 0
-        clicked = ()
-        print(clicks)
-        dug = set()
-
-        tile_gap = 1  # this is how you can tell the tiles apart
-
-        tile_size = 50  
-        tiles_per_row = 10 
-
-        width = tiles_per_row * (tile_size + tile_gap)
-
-        normal_tile = pygame.image.load("assets/tile1.png")
-        bomb_tile = pygame.image.load("assets/bomb1.png")
-        flag_tile = pygame.image.load("assets/flag tile.png")
-        clicked_tile = pygame.image.load("assets/tile broken.png")
-        number_tiles = [
-            pygame.image.load("assets/1 tile.png"),
-            pygame.image.load("assets/2 tile.png"),
-            pygame.image.load("assets/3 tile.png"),
-            pygame.image.load("assets/4 tile.png"),
-            pygame.image.load("assets/5 tile.png"),
-            pygame.image.load("assets/6 tile.png"),
-            pygame.image.load("assets/7 tile.png"),
-            pygame.image.load("assets/8 tile.png")
-        ]
-
-        tiles = []
-
-            
-        def clear_grid(tile, dug):
+def clear_grid(tile, dug):
             row, col = tile.rect.y // (tile_size + tile_gap), tile.rect.x // (tile_size + tile_gap)
             dug.add((row, col))
 
@@ -276,20 +222,7 @@ while running:
 
                         dug.add((row + i, col + j))
 
-
-
-        mine_pos = []
-
-        start_x = 0
-        start_y = 0
-
-
-        for row in range(10):
-            for col in range(10):
-                tile = TileFunction(start_x + col * (tile_size + tile_gap), start_y + row * (tile_size + tile_gap), normal_tile, tile_size, tile_size)
-                tiles.append(tile)
-
-        def mines_and_numbers(tiles, num_mines):
+def mines_and_numbers(tiles, num_mines):
             mine_positions = random.sample([(row, col) for row in range(10) for col in range(10)], num_mines)
             
             for row, col in mine_positions:
@@ -297,7 +230,7 @@ while running:
                 index = row * 10 + col
                 tiles[index].is_mine = True
             
-            print(mine_positions)
+            #print(mine_positions)
 
 
             for tile in tiles:
@@ -311,7 +244,8 @@ while running:
                             if tiles[index].is_mine:    # Checks if neighbouring tile is a mine
                                 tile.adjacent_mines += 1    # Increments current tile adjacent_mines attribute by 1
 
-        def reset_grid():
+
+def reset_grid():
             print("reset")
             
             global clicked
@@ -347,6 +281,133 @@ while running:
             # Reset clicked variable
             clicked = ()
 
+
+def game():
+
+    
+    pass
+
+
+def end_game():
+
+    convert_bomb_tile()
+
+    
+    # Drawing onto the overlay surface
+    end_screen.fill((255, 255, 255, 70))  # Fill with semi-transparent white color
+
+    # Blit the overlay surface onto the main screen
+    screen.blit(end_screen, (0, 0))
+                            
+
+    while True:
+                     
+
+        # Drawing the screen buttons
+        screen.blit(end, (50,0))
+        try_again_button = button.Button(300,530, try_again_image, 0.5)
+        exit_button = button.Button(50,530, exit_image, 0.5)
+
+
+        # exit buttons function
+        if exit_button.draw(screen2):
+            print("Exitting")
+            pygame.quit()
+            exit()
+
+        try_again_button.draw(screen2)# Draws the try game button
+                            
+
+                                    
+                            
+        # Did the user click the window to close the button
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if try_again_button.draw(screen2):
+                    print("START AGAIN")
+                    #game_over = False
+
+            
+        pygame.display.flip()
+
+
+
+
+
+
+game_over = False
+show_end  = False
+loop_once_everygame = False
+tile_print = True
+count = 0
+
+i = 0
+#Main Loop
+running = True
+while running:
+    timer.tick(60)
+    
+    
+
+    # Drawing the scrolling background 
+    draw_bg(bg_screen)
+    
+        
+
+    # Blit a clear screen ontop of the previous screen,  this allows seperation between the moving screen and buttons preventing flickering
+    screen.blit(bg_screen, (0, 0))
+
+
+    num -= 1
+
+    if start_button.draw(screen): # Start Button Function 
+        print("START")
+        looped_once = False 
+
+
+        pygame.time.delay(200)
+        screen2 = pygame.display.set_mode((1066, 600)) # Creating the screen2
+        pygame.display.set_caption('Minesweeper')
+        screen2.fill("black")
+        num_mines = 24
+
+        clicks = 0
+        resets = 0
+        clicked = ()
+        dug = set()
+
+        tile_gap = 1  # this is how you can tell the tiles apart
+
+        tile_size = 50  
+        tiles_per_row = 10 
+
+        width = tiles_per_row * (tile_size + tile_gap)
+
+
+
+        tiles = []
+
+            
+        
+
+
+        mine_pos = []
+
+        start_x = 0
+        start_y = 0
+
+
+        for row in range(10):
+            for col in range(10):
+                tile = TileFunction(start_x + col * (tile_size + tile_gap), start_y + row * (tile_size + tile_gap), normal_tile, tile_size, tile_size)
+                tiles.append(tile)
+
+        
+ 
+
         # Randomly place mines and assort numbers
         mines_and_numbers(tiles, num_mines)
 
@@ -358,10 +419,17 @@ while running:
         # Tile while loop 
         while tile_print == True:
                 
-                all_mines_revealed = all(tile.is_mine for tile in tiles)
+                # if all the mines are revealed the game ends
+                all_mines_revealed = all(tile.image == bomb_tile for tile in tiles if tile.is_mine)
                 
-                for tile in tiles: # Draws the tiles onto the screen2
-                        action = tile.draw(screen2)
+
+                if count == num_mines:
+                    looped_once = True # this tries to only loop the end game once so that the whole thing doesnt get covered with a white screen. 
+                    end_game()
+
+                if not all_mines_revealed:
+                    for tile in tiles: # Draws the tiles onto the screen2
+                            action = tile.draw(screen2)
 
                 
 
@@ -375,27 +443,26 @@ while running:
                             #print("left clicked")  # Check if any action was performed
                             for tile in tiles:
                                 if tile.rect.collidepoint(event.pos):  # Check which tile was clicked
-                                    if tile.is_mine and clicks != 0:
+                                    if tile.is_mine and clicks != 0: # if the tile clicked on was a mine
+
                                         print("You clicked on a mine!")
-                                        game_over = True 
-                                        for cube1 in tiles:
-                                            print(all_mines_revealed)
+
+                                        for cube1 in tiles: # reveals all the mines by iterating through the tiles list finding the mines and changing their image
                                             if cube1.is_mine: 
                                                 cube1.image = bomb_tile
+                                                pygame.display.flip()
                                                 cube1.image = pygame.transform.scale(cube1.image, (tile_size,tile_size))
                                                 cube1.state = 'clicked'
+                                                count += 1
+                                                print(count)
 
                                             else:                           
                                                 cube1.state = 'clicked'
+                                    
 
 
 
-                                        pygame.display.flip()
-
-                                        
-                                        
-                                                 
-
+                        
                     elif event.type == pygame.MOUSEBUTTONUP:
                         if event.button == 3:  # Right mouse button released
                             right_click_pressed = False  # Reset the flag
@@ -426,7 +493,7 @@ while running:
                 
                     if correct_flag == num_mines and not win_displayed:  # Check if all flags are placed correctly
                         # Reveal all mines
-                        convert_bomb_tile()
+                        end_game()
 
                         # Disable further clicks
                         for tile in tiles:
@@ -442,45 +509,8 @@ while running:
 
 
                     pygame.display.flip()
-                        
-                    if game_over == True and loop_once_everygame == False:
-                        #loop_once_everygame = True# only allows one loop cause then the mines cannot be clicked again to make the backscreen more white
-
-                        # Drawing onto the overlay surface
-                        end_screen.fill((255, 255, 255, 160))  # Fill with semi-transparent white color
-
-                        # Blit the overlay surface onto the main screen
-                        screen.blit(end_screen, (0, 0))
-                        
-                
-                        
-
-                        # Drawing the screen buttons
-                        screen.blit(end, (50,0))
-                        try_again_button = button.Button(300,530, try_again_image, 0.5)
-                        exit_button = button.Button(50,530, exit_image, 0.5)
-
-
-                        # exit buttons function
-                        if exit_button.draw(screen2):
-                            show_end = False
-                            print("Exitting")
-                            pygame.quit()
-                            exit()
-                        
-                        if try_again_button.draw(screen2):
-                                print("START AGAIN")
-                                game_over = False
-                                #clear_grid()
-                        
-                        # Did the user click the window to close the button
-                        for event in pygame.event.get():
-                            if event.type == pygame.QUIT:
-                                pygame.quit()
-                                exit()
-
-        
-                        pygame.display.flip()
+                   
+    
 
 
                        
