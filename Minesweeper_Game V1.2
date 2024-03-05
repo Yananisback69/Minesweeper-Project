@@ -1,7 +1,7 @@
 import pygame
 import button
-import os
 import random
+
 
 # This calls the __init__ functions of every pygame module
 pygame.init()
@@ -30,7 +30,7 @@ end = pygame.image.load(f"assets/Gameover.png").convert_alpha()
 end = pygame.transform.scale(end, (400, 100))
 
 normal_tile = pygame.image.load("assets/tile1.png")
-bomb_tile = pygame.image.load("assets/bomb_tile.png")
+bomb_tile = pygame.image.load("assets/mine final.png")
 flag_tile = pygame.image.load("assets/flag tile.png")
 clicked_tile = pygame.image.load("assets/tile broken.png")
 number_tiles = [
@@ -70,7 +70,7 @@ class TileFunction:
         # convert mouse position to local coordinates on the tiles_surface
         local_pos = pos[0] - 300, pos[1] - 50
 
-        # flag mouse over button
+        # mouse over button
         if self.rect.collidepoint(local_pos):
             # Left Click!
             if pygame.mouse.get_pressed()[0] == 1 and self.state == "normal":
@@ -101,20 +101,6 @@ class TileFunction:
                     self.image = pygame.transform.scale(self.image, (tile_size, tile_size))
                     self.state = "clicked"
                     action = True
-            # Right Click!
-            elif pygame.mouse.get_pressed()[2] == 1 and self.state == "normal":
-                if clicks == 1 or clicks == 2:
-                    self.image = flag_tile
-                    self.image = pygame.transform.scale(self.image, (tile_size, tile_size))
-                    self.state = "flagged"
-                    action = True
-
-            elif pygame.mouse.get_pressed()[2] == 1 and self.state == "flagged":
-                if clicks == 0 or clicks == 1:
-                    self.image = normal_tile
-                    self.image = pygame.transform.scale(self.image, (tile_size, tile_size))
-                    self.state = "normal"
-                    action = True
 
         # draw button on surface instead of screen
         surface.blit(self.image, (self.rect.x, self.rect.y))
@@ -128,12 +114,20 @@ difficulty_image = pygame.image.load('assets/Difficulty.png')
 help_image = pygame.image.load('assets/Help.png')
 try_again_image = pygame.image.load('assets/Tryagain.png')
 exit_image = pygame.image.load('assets/Exit.png')
+
+# Loading other images
 title_image = pygame.image.load('assets/title 4.png')
+tiles_surface_image = pygame.image.load('assets/background.png')
+tiles_surface_image = pygame.transform.scale(tiles_surface_image, (screen_width, screen_height))
 
 # Creating button instances
-start_button = button.Button(screen_width * 0.5, screen_height * 0.43, start_image, 0.18)
-difficulty_button = button.Button(screen_width * 0.5, screen_height * 0.57, difficulty_image, 0.27)
-help_button = button.Button(screen_width * 0.5, screen_height * 0.71, help_image, 0.2925)
+start_button = button.Button(screen_width * 0.5, screen_height * 0.43, start_image, 0.2925)
+#difficulty_button = button.Button(screen_width * 0.5, screen_height * 0.57, difficulty_image, 0.27)
+help_button = button.Button(screen_width * 0.5, screen_height * 0.57, help_image, 0.2925)
+exit_button = button.Button(screen_width * 0.5, screen_height * 0.71, exit_image, 0.2925)
+
+
+#Creating title animation
 title = button.Title(screen_width * 0.5, screen_height * 0.17, title_image, 0.5)
 
 
@@ -144,7 +138,7 @@ end_screen = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)  # c
 bg_screen = pygame.Surface((screen_width, screen_height))
 
 
-# Drawing the the animated surface, Credits to the youtube video that showed me how, can be found in the documents.
+# Drawing the the animated surface, Credits to the youtube video that showed me how can be found in the documents.
 def draw_bg(surface):
     global num
     # surface.fill((255, 255, 255))
@@ -173,9 +167,6 @@ def convert_bomb_tile():
 
         else:
             cube1.state = 'clicked'
-
-    for tile in tiles:  # Draws the tiles onto the surface
-        action = tile.draw(tiles_surface)
 
 
 def clear_grid(tile, dug):
@@ -212,7 +203,7 @@ def mines_and_numbers(tiles, num_mines):
         index = row * 10 + col
         tiles[index].is_mine = True
 
-    # print(mine_positions)
+
 
     for tile in tiles:
         # Check adjacent tiles and update adjacent_mines
@@ -371,8 +362,7 @@ while running:
         # Creating surface to blit tiles onto
         tiles_surface_size = width, height = (509, 509)
         tiles_surface = pygame.Surface(tiles_surface_size)
-        surface_colour = (0, 0, 0)
-        tiles_surface.fill(surface_colour)
+        screen2.blit(tiles_surface_image, (0,0))
 
 
         # Tile while loop
@@ -399,10 +389,12 @@ while running:
             for event in pygame.event.get():
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 3: # Right mouse button clicked
+                        right_click_pressed = True # Initiate flag setting process
                     if event.button == 1:
                         # print("left clicked")  # Check if any action was performed
                         for tile in tiles:
-                            if tile.rect.collidepoint(event.pos):  # Check which tile was clicked
+                            if tile.rect.collidepoint(local_pos):  # Check which tile was clicked
                                 if tile.is_mine and clicks != 0:  # if the tile clicked on was a mine
                                     for cube1 in tiles:  # reveals all the mines by iterating through the tiles list finding the mines and changing their image
                                         if cube1.is_mine:
@@ -419,13 +411,17 @@ while running:
                                         end_game()
                                         break
 
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    if event.button == 3:  # Right mouse button released
+                        right_click_pressed = False  # Reset the flag
+
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     exit()
 
                 if right_click_pressed:  # Check for right mouse button click
                     for tile in tiles:
-                        if tile.rect.collidepoint(pygame.mouse.get_pos()):
+                        if tile.rect.collidepoint(local_pos):
                             if tile.state == "normal":  # Right-click to flag
                                 tile.image = flag_tile  # changing the state to flag state
                                 tile.image = pygame.transform.scale(tile.image,
@@ -462,8 +458,11 @@ while running:
 
                 pygame.display.flip()
 
-    if difficulty_button.draw(screen):
-        print("DIFFICULTY")
+    #if difficulty_button.draw(screen):
+        #print("DIFFICULTY")
+
+    if exit_button.draw(screen):
+        print("Exit")
 
     if help_button.draw(screen):
         print("CANNOT HELP")
