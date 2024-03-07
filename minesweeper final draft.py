@@ -12,6 +12,8 @@ pygame.mixer.music.load("assets/bg music.mp3")
 #click_sound = pygame.mixer.Sound()
 pygame.mixer.music.play(-1)  # -1 means loop indefinitely
 
+
+
 # Setting screen size
 screen_width = 1066
 screen_height = 600
@@ -48,6 +50,8 @@ number_tiles = [
 
 clicked = ()
 dug = set()
+
+
 
 class TileFunction:
 
@@ -115,7 +119,8 @@ class TileFunction:
 start_image = pygame.image.load('assets/startgreen1.png')
 help_image = pygame.image.load('assets/helpgreen.png')  
 try_again_image = pygame.image.load('assets/try again.png')  
-exit_image = pygame.image.load('assets/Exit.png')  
+exit_image = pygame.image.load('assets/Exit.png')
+mute_image = pygame.image.load('assets/mute button.png')
 
 
 
@@ -127,9 +132,9 @@ tiles_surface_image = pygame.transform.scale(tiles_surface_image, (screen_width,
 
 # Creating button instances
 start_button = button.Button(screen_width * 0.5, screen_height * 0.43, start_image, 0.2925)
-#difficulty_button = button.Button(screen_width * 0.5, screen_height * 0.57, difficulty_image, 0.27)
 help_button = button.Button(screen_width * 0.5, screen_height * 0.57, help_image, 0.2925)
 exit_button = button.Button(screen_width * 0.5, screen_height * 0.71, exit_image, 0.2925)
+mute_button = button.Button(screen_width * 0.8, screen_height * 0.89, mute_image, 1)
 
 #Creating title animation
 title = button.Title(screen_width * 0.5, screen_height * 0.17, title_image, 0.5)
@@ -502,6 +507,23 @@ while running:
     title.draw(screen)
     num -= 1
 
+
+    def toggle_mute():
+        global muted
+        if pygame.mixer.music.get_busy():  # Check if music is currently playing
+            if muted:
+                pygame.mixer.music.unpause()  # Unpause the music if it's currently muted
+                muted = False
+            else:
+                pygame.mixer.music.pause()  # Pause the music if it's currently playing
+                muted = True
+        else:
+            pygame.mixer.music.play(-1)  # Start playing music if it's not currently playing
+            muted = False
+
+    running = True
+    muted = False  # To track the mute state
+
     if start_button.draw(screen): # Start Button Function
         print("start")
 
@@ -638,6 +660,13 @@ while running:
                 if event.type == pygame.QUIT:
                     running = False
 
+  
+    if mute_button.draw(screen):
+         toggle_mute()
+
+
+    
+    
     if exit_button.draw(screen):
         print("EXIT")
         pygame.quit()
@@ -649,4 +678,3 @@ while running:
             running = False
     
 pygame.quit()
-
