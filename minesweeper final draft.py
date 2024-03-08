@@ -5,6 +5,7 @@ import math
 import sys
 
 
+
 # This calls the __init__ functions of every pygame module
 pygame.init()
 
@@ -13,7 +14,7 @@ tiles_per_row_easy = 10
 tiles_per_row_hard = 20
 tile_size_easy = 50
 tile_size_medium = 33
-tile_size_hard = 20
+tile_size_hard = 24
                         #### ASSETS ####
 
 # Load and play the background music
@@ -59,7 +60,6 @@ hard_btn = button.Button(750, 150, hard_image, 0.3)
 mute_button = button.Button(screen_width * 0.8, screen_height * 0.89, mute_image, 0.2)
 
 board_border_image = pygame.image.load("assets/board border.png")
-board_border = pygame.transform.scale(board_border_image, (568, 570))
 normal_tile = pygame.image.load("assets/tile1.png")
 bomb_tile = pygame.image.load("assets/mine final.png")
 flag_tile = pygame.image.load("assets/flag tile.png")
@@ -90,7 +90,6 @@ gameover_image = pygame.image.load(f"assets/Gameover.png").convert_alpha()
 
 # Creating button instances
 start_button = button.Button(screen_width * 0.5, screen_height * 0.43, start_image, 0.2925)
-# difficulty_button = button.Button(screen_width * 0.5, screen_height * 0.57, difficulty_image, 0.27)
 help_button = button.Button(screen_width * 0.5, screen_height * 0.57, help_image, 0.2925)
 exit_button = button.Button(screen_width * 0.5, screen_height * 0.71, exit_image, 0.2925)
 try_again_button = button.Button(screen_width * 0.5, 350, try_again_image, 0.25)
@@ -334,7 +333,6 @@ def main_menu():
         # Blit a clear screen on top of the previous screen to prevent flickering
         global screen
         screen.blit(bg_screen, (0, 0))
-        print("MAIN MENU")
         title.draw(screen)
 
         # Draw the start button
@@ -369,6 +367,7 @@ def main_menu():
                 elif hard_btn.draw(screen):
                     num_mines = num_mines_hard
                     tiles_per_row = tiles_per_row_hard
+                    selected_difficulty = 'hard'
                     tile_size = tile_size_hard
                     menu = False
                     game()
@@ -422,7 +421,7 @@ def help_section():
         text_font, (0, 0, 0), 100)
 
 def game():
-    global tile_size, tile_gap, screen2, tiles, tile, num_mines, count, correct_flag, clicks, resets
+    global tile_size, tile_gap, screen2, tiles, tile, num_mines, count, correct_flag, clicks, resets, board_border
     print("START")
     global looped_once
     looped_once = False
@@ -465,6 +464,11 @@ def game():
         if not all_mines_revealed:
             for tile in tiles:  # Draws the tiles onto the screen2
                 tile.draw(tiles_surface)
+
+        if selected_difficulty == 'hard':
+            board_border = pygame.transform.scale(board_border_image, (558, 560))
+        else:
+            board_border = pygame.transform.scale(board_border_image, (568, 570))
 
         screen2.blit(tiles_surface, (300, 50))
         screen2.blit(board_border, (272, 18))
