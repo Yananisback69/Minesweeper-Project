@@ -480,7 +480,21 @@ def end_game():
             
         pygame.display.flip()
 
+def toggle_mute():
+        global muted
+        if pygame.mixer.music.get_busy():  # Check if music is currently playing
+            if muted:
+                pygame.mixer.music.unpause()  # Unpause the music if it's currently muted
+                muted = False
+            else:
+                pygame.mixer.music.pause()  # Pause the music if it's currently playing
+                muted = True
+        else:
+            pygame.mixer.music.play(-1)  # Start playing music if it's not currently playing
+            muted = False
 
+    running = True
+    muted = False  # To track the mute state
 
 
 
@@ -508,21 +522,7 @@ while running:
     num -= 1
 
 
-    def toggle_mute():
-        global muted
-        if pygame.mixer.music.get_busy():  # Check if music is currently playing
-            if muted:
-                pygame.mixer.music.unpause()  # Unpause the music if it's currently muted
-                muted = False
-            else:
-                pygame.mixer.music.pause()  # Pause the music if it's currently playing
-                muted = True
-        else:
-            pygame.mixer.music.play(-1)  # Start playing music if it's not currently playing
-            muted = False
-
-    running = True
-    muted = False  # To track the mute state
+    
 
     if start_button.draw(screen): # Start Button Function
         print("start")
