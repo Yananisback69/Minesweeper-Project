@@ -21,6 +21,7 @@ screen_height = 600
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Minesweeper")
 timer = pygame.time.Clock()
+tiles_per_row = 15
 
 # bg images
 bg_images = []
@@ -46,9 +47,9 @@ tiles_surface = pygame.Surface(tiles_surface_size)
 
 # Create an instance of the Button class
 back_button = button.Button(540, 500, back_img, 0.3)
-easy_btn = button.Button(350, 150, easy_image, 0.3)
-medium_btn = button.Button(550, 150, medium_image, 0.3)
-hard_btn = button.Button(750, 150, hard_image, 0.3)
+easy_btn = button.Button(350, 100, easy_image, 0.3)
+medium_btn = button.Button(550, 100, medium_image, 0.3)
+hard_btn = button.Button(750, 100, hard_image, 0.3)
 
 board_border_image = pygame.image.load("assets/board border.png")
 board_border = pygame.transform.scale(board_border_image, (568, 570))
@@ -224,8 +225,8 @@ def clear_grid(tile, dug):
 
     for i in range(-1, 2):
         for j in range(-1, 2):
-            if 0 <= row + i < 15 and 0 <= col + j < 15:
-                index = (row + i) * 15 + (col + j)
+            if 0 <= row + i < tiles_per_row and 0 <= col + j < tiles_per_row:
+                index = (row + i) * tiles_per_row + (col + j)
                 neighbor_tile = tiles[index]
 
                 if neighbor_tile.adjacent_mines == 0 and (row + i, col + j) not in dug:
@@ -242,11 +243,11 @@ def clear_grid(tile, dug):
 
 
 def mines_and_numbers(tiles, num_mines):
-    mine_positions = random.sample([(row, col) for row in range(15) for col in range(15)], num_mines)
+    mine_positions = random.sample([(row, col) for row in range(tiles_per_row) for col in range(tiles_per_row)], num_mines)
 
     for row, col in mine_positions:
         # Calculate the index of the tile based on row and col
-        index = row * 15 + col
+        index = row * tiles_per_row + col
         tiles[index].is_mine = True
 
     for tile in tiles:
@@ -256,8 +257,8 @@ def mines_and_numbers(tiles, num_mines):
 
         for i in range(-1, 2):  # Creates a 3*3 grid
             for j in range(-1, 2):
-                if 0 <= row + i < 15 and 0 <= col + j < 15:  # Checks to see if neighbouring tile is within the screen2 boundary
-                    index = (row + i) * 15 + (col + j)  # Calculates index of neighbouring tile
+                if 0 <= row + i < tiles_per_row and 0 <= col + j < tiles_per_row:  # Checks to see if neighbouring tile is within the screen2 boundary
+                    index = (row + i) * tiles_per_row + (col + j)  # Calculates index of neighbouring tile
                     if tiles[index].is_mine:  # Checks if neighbouring tile is a mine
                         tile.adjacent_mines += 1  # Increments current tile adjacent_mines attribute by 1
 
@@ -284,7 +285,7 @@ def reset_grid():
     # If there's a clicked tile, update its state and image
     if clicked:
         row, col = clicked
-        index = (row - 1) * 15 + (col - 1)
+        index = (row - 1) * tiles_per_row + (col - 1)
         tile = tiles[index]
         if tile.is_mine:
             reset_grid()
@@ -396,14 +397,13 @@ def game():
     screen2 = pygame.display.set_mode((screen_width, screen_height))  # Creating the screen2
     pygame.display.set_caption('Minesweeper')
     screen2.fill("black")
-    num_mines = 15
+    num_mines = 24
     clicks = 0
     resets = 0
     tile_gap = 1  # this is how you can tell the tiles apart
 
     tile_size = 25
-    tiles_per_row = 15
-
+    
     global width
     width = tiles_per_row * (tile_size + tile_gap)
 
@@ -412,8 +412,8 @@ def game():
     start_x = 0
     start_y = 0
 
-    for row in range(15):
-        for col in range(15):
+    for row in range(tiles_per_row):
+        for col in range(tiles_per_row):
             tile = TileFunction(start_x + col * (tile_size + tile_gap), start_y + row * (tile_size + tile_gap),
                                 normal_tile, tile_size, tile_size)
             tiles.append(tile)
