@@ -4,8 +4,6 @@ import random
 import math
 import sys
 
-
-
 # This calls the __init__ functions of every pygame module
 pygame.init()
 
