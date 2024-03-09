@@ -5,6 +5,7 @@ import random
 import math
 import sys
 
+
 # This calls the __init__ functions of every pygame module
 pygame.init()
 tiles_per_row_medium = 15
@@ -16,9 +17,9 @@ tile_size_hard = 24
 #### ASSETS ####
 
 # Load and play the background music
-#pygame.mixer.music.load("assets/bg music.mp3")
+pygame.mixer.music.load("assets/bg music.mp3")
 # click_sound = pygame.mixer.Sound()
-#pygame.mixer.music.play(-1)  # -1 means loop indefinitely
+pygame.mixer.music.play(-1)  # -1 means loop indefinitely
 
 # Setting screen size
 screen_width = 1066
@@ -448,13 +449,13 @@ def main_menu():
             pygame.quit()
             sys.exit()  # Use sys.exit() instead of exit()
 
-        elif mute_button.draw(screen):
-            print("Toggle Music")
-            toggle_mute()
-
         elif help_button.draw(screen):
             print("HELP")
             help_section()
+
+        elif mute_button.draw(screen):
+            print("Toggle Music")
+            toggle_mute()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
