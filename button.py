@@ -1,8 +1,20 @@
 import pygame
+pygame.mixer.init()
+
+class SoundManager:
+    def __init__(self):
+        self.muted = False
+
+    def toggle_mute(self):
+        self.muted = not self.muted
+
+    def play_sound(self, sound):
+        if not self.muted:
+            pygame.mixer.Sound.play(sound)
 
 # button class
 class Button():
-    def __init__(self, x, y, image, scale):
+    def __init__(self, x, y, image, scale, sound_manager=None, click_sound=None):
         width = image.get_width()
         height = image.get_height()
 
@@ -11,6 +23,8 @@ class Button():
         self.image = pygame.transform.scale(image, (int(width * scale), int(height * scale)))
         self.rect = self.image.get_rect(center=(x, y))  # Set the center of the button
         self.clicked = False
+        self.sound_manager = sound_manager
+        self.click_sound = click_sound
 
     def draw(self, surface):
         action = False
@@ -22,6 +36,11 @@ class Button():
             if pygame.mouse.get_pressed()[0] == 1 and not self.clicked:
                 self.clicked = True
                 action = True
+                if self.sound_manager:
+                    self.sound_manager.play_sound(self.click_sound)
+            elif pygame.mouse.get_pressed()[0] == 0:
+                # Reset the clicked flag when the mouse is released
+                self.clicked = False
         else:
             self.clicked = False
 
@@ -70,8 +89,8 @@ class Title:
         self.rect = self.image.get_rect(center=self.rect.center)
         surface.blit(self.image, (self.rect.x, self.rect.y))
 
-class ToggleMuteButton:
-    def __init__(self, x, y, image_unmute, image_mute, scale):
+class ToggleSoundButton:
+    def __init__(self, x, y, image_unmute, image_mute, scale, sound_manager=None, click_sound=None):
         # Initialize images for unmute and mute states
         self.image_unmute = pygame.transform.scale(image_unmute, (int(image_unmute.get_width() * scale),
                                                                   int(image_unmute.get_height() * scale)))
@@ -83,6 +102,71 @@ class ToggleMuteButton:
         self.rect = self.image.get_rect(center=(x, y))
         self.clicked = False
         self.is_muted = False  # Initial state is unmuted
+        self.sound_manager = sound_manager
+        self.click_sound = click_sound
+
+    def toggle_mute(self):
+        # Toggle between unmute and mute states
+        self.is_muted = not self.is_muted
+        if self.is_muted:
+            self.image = self.image_mute
+        else:
+            self.image = self.image_unmute
+        if self.sound_manager:
+            self.sound_manager.toggle_mute()
+
+    def draw(self, surface):
+        action = False
+        # get mouse position
+        pos = pygame.mouse.get_pos()
+
+        # check mouse over button
+        if self.rect.collidepoint(pos):
+            if pygame.mouse.get_pressed()[0] == 1 and not self.clicked:
+                action = True
+                self.clicked = True
+                if self.sound_manager:
+                    self.sound_manager.play_sound(self.click_sound)
+                # Toggle mute state when clicked
+                self.toggle_mute()
+            elif pygame.mouse.get_pressed()[0] == 0:
+                # Reset the clicked flag when the mouse is released
+                self.clicked = False
+        else:
+            self.clicked = False
+
+        # temporarily increase size when hovered
+        if self.rect.collidepoint(pos):
+            scale_factor = 1.1
+        else:
+            scale_factor = 1.0
+
+        # update the button size and position based on the scale factor
+        button_image = pygame.transform.scale(self.image, (int(self.image.get_width() * scale_factor),
+                                                           int(self.image.get_height() * scale_factor)))
+        button_rect = button_image.get_rect(center=self.rect.center)
+
+        # draw button on screen
+        surface.blit(button_image, (button_rect.x, button_rect.y))
+
+        return action
+
+
+class ToggleMuteButton:
+    def __init__(self, x, y, image_unmute, image_mute, scale, sound_manager=None, click_sound=None):
+        # Initialize images for unmute and mute states
+        self.image_unmute = pygame.transform.scale(image_unmute, (int(image_unmute.get_width() * scale),
+                                                                  int(image_unmute.get_height() * scale)))
+        self.image_mute = pygame.transform.scale(image_mute, (int(image_mute.get_width() * scale),
+                                                              int(image_mute.get_height() * scale)))
+
+        # Set the initial image and rect
+        self.image = self.image_unmute
+        self.rect = self.image.get_rect(center=(x, y))
+        self.clicked = False
+        self.is_muted = False  # Initial state is unmuted
+        self.sound_manager = sound_manager
+        self.click_sound = click_sound
 
     def toggle_mute(self):
         # Toggle between unmute and mute states
@@ -102,8 +186,13 @@ class ToggleMuteButton:
             if pygame.mouse.get_pressed()[0] == 1 and not self.clicked:
                 action = True
                 self.clicked = True
+                if self.sound_manager:
+                    self.sound_manager.play_sound(self.click_sound)
                 # Toggle mute state when clicked
                 self.toggle_mute()
+            elif pygame.mouse.get_pressed()[0] == 0:
+                # Reset the clicked flag when the mouse is released
+                self.clicked = False
         else:
             self.clicked = False
 
