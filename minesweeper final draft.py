@@ -5,7 +5,6 @@ import random
 import math
 import sys
 
-
 # This calls the __init__ functions of every pygame module
 pygame.init()
 tiles_per_row_medium = 15
@@ -16,10 +15,19 @@ tile_size_medium = 33
 tile_size_hard = 24
 #### ASSETS ####
 
-# Load and play the background music
+# Load and play the background music and SFX
 pygame.mixer.music.load("assets/bg music.mp3")
-# click_sound = pygame.mixer.Sound()
+click_sound = pygame.mixer.Sound('assets/click sound.mp3')
 pygame.mixer.music.play(-1)  # -1 means loop indefinitely
+click_sound.set_volume(0.5)
+sound_manager = button.SoundManager()
+tile_break_sound = pygame.mixer.Sound('assets/tile break sound effect.mp3')
+tile_break_sound.set_volume(0.3)
+pygame.mixer.music.set_volume(0.5)
+flag_sound = pygame.mixer.Sound('assets/flag sound effect.mp3')
+lose_sound = pygame.mixer.Sound('assets/game lose sound effect.mp3')
+win_sound = pygame.mixer.Sound('assets/game win sound effect.mp3')
+bomb_sound = pygame.mixer.Sound('assets/bomb sound effect.mp3')
 
 # Setting screen size
 screen_width = 1066
@@ -60,6 +68,8 @@ hard_image = pygame.image.load('assets/Hard.png').convert_alpha()
 mute_image = pygame.image.load('assets/mute_button.png')
 unmute_image = pygame.image.load('assets/unmute_button.png')
 continue_image = pygame.image.load("assets/Continue.png")
+sound_on_image = pygame.image.load('assets/sound on.png')
+sound_off_image = pygame.image.load('assets/sound off.png')
 
 # Creating surface to blit tiles onto
 tiles_surface_size = width, height = (509, 509)
@@ -70,15 +80,15 @@ flag_counter_image = pygame.image.load('assets/flag_counter + timer.png')
 flag_counter_image = pygame.transform.scale(flag_counter_image, (200, 145))
 
 # Create an instance of the Button class
-back_button = button.Button(540, 450, back_img, 0.3)
-easy_btn = button.Button(350, 250, easy_image, 0.3)
-medium_btn = button.Button(550, 250, medium_image, 0.3)
-hard_btn = button.Button(750, 250, hard_image, 0.3)
-mute_button = button.ToggleMuteButton(screen_width * 0.95, screen_height * 0.94, unmute_image, mute_image, 0.2)
-continue_button = button.Button(screen_width * 0.1, 450, continue_image, 0.2925)
-left_arrow = button.Button(screen_width * 0.45, screen_height * 0.85, left_arrow_image, 0.4)
-right_arrow = button.Button(screen_width * 0.55, screen_height * 0.85, right_arrow_image, 0.4)
-
+back_button = button.Button(540, 450, back_img, 0.3, sound_manager, click_sound)
+easy_btn = button.Button(350, 250, easy_image, 0.3, sound_manager, click_sound)
+medium_btn = button.Button(550, 250, medium_image, 0.3, sound_manager, click_sound)
+hard_btn = button.Button(750, 250, hard_image, 0.3, sound_manager, click_sound)
+mute_button = button.ToggleMuteButton(screen_width * 0.95, screen_height * 0.94, unmute_image, mute_image, 0.2, sound_manager, click_sound)
+continue_button = button.Button(screen_width * 0.13, 450, continue_image, 0.2925, sound_manager, click_sound)
+left_arrow = button.Button(screen_width * 0.40, screen_height * 0.85, left_arrow_image, 0.4, sound_manager, click_sound)
+right_arrow = button.Button(screen_width * 0.60, screen_height * 0.85, right_arrow_image, 0.4, sound_manager, click_sound)
+sound_button = button.ToggleSoundButton(screen_width * 0.95, screen_height * 0.85, sound_on_image, sound_off_image, 0.2, sound_manager, click_sound)
 board_border_image = pygame.image.load("assets/board border.png")
 normal_tile = pygame.image.load("assets/tile1.png")
 bomb_tile = pygame.image.load("assets/bomb1.png")
@@ -110,11 +120,12 @@ gameover_image = pygame.image.load(f"assets/Gameover.png").convert_alpha()
 gamewin_image = pygame.image.load(f"assets/you win.png").convert_alpha()
 
 # Creating button instances
-start_button = button.Button(screen_width * 0.5, screen_height * 0.43, start_image, 0.2925)
-help_button = button.Button(screen_width * 0.5, screen_height * 0.57, help_image, 0.2925)
-exit_button = button.Button(screen_width * 0.5, screen_height * 0.71, exit_image, 0.2925)
-retry_button = button.Button(screen_width * 0.5, 350, try_again_image, 0.25)
-home_button = button.Button(screen_width * 0.5, 450, back_img, 0.2925)
+start_button = button.Button(screen_width * 0.5, screen_height * 0.43, start_image, 0.2925, sound_manager, click_sound)
+help_button = button.Button(screen_width * 0.5, screen_height * 0.57, help_image, 0.2925, sound_manager, click_sound)
+exit_button = button.Button(screen_width * 0.5, screen_height * 0.71, exit_image, 0.2925, sound_manager, click_sound)
+retry_button = button.Button(screen_width * 0.5, 370, try_again_image, 0.25, sound_manager, click_sound)
+home_button = button.Button(screen_width * 0.5, 470, back_img, 0.2925, sound_manager, click_sound)
+home_button2 = button.Button(screen_width * 0.5, 510, back_img, 0.2925, sound_manager, click_sound)
 
 # Creating title animation
 title = button.Title(screen_width * 0.5, screen_height * 0.17, title_image, 0.5)
@@ -137,18 +148,18 @@ dug = set()
 #### CLASS FOR TILE FUNCTIONALITY ####
 class TileFunction:
 
-    def __init__(self, x, y, image, w, h):
+    def __init__(self, x, y, image, w, h, sound_manager=None, tile_break_sound=None):
         self.image = pygame.transform.scale(image, (w, h))
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
         self.state = "normal"
         self.is_mine = False
         self.adjacent_mines = 0
-        # self.tile_blank = False
+        self.sound_manager = sound_manager
+        self.tile_break_sound = tile_break_sound
 
     def draw(self, surface):
-        global clicked
-        global clicks
+        global clicked, clicks, count
 
         action = False
 
@@ -163,7 +174,6 @@ class TileFunction:
             # Left Click!
             if pygame.mouse.get_pressed()[0] == 1 and self.state == "normal":
                 clicks += 1
-                print(clicks)
 
                 tile_row = int(local_pos[1] // tile_size)
                 tile_col = int(local_pos[0] // tile_size)
@@ -173,6 +183,8 @@ class TileFunction:
                 dug.add(clicked)
 
                 if clicks == 0 or clicks == 1:
+                    if self.sound_manager:
+                        self.sound_manager.play_sound(tile_break_sound)
                     if self.is_mine or self.adjacent_mines > 0:
                         reset_grid()
                     else:
@@ -180,11 +192,16 @@ class TileFunction:
                 else:
                     if self.is_mine:
                         self.image = bomb_tile
+                        count += 1
                     elif self.adjacent_mines > 0:
                         self.image = number_tiles[self.adjacent_mines - 1]
                         dug.add(clicked)
+                        if self.sound_manager:
+                            self.sound_manager.play_sound(tile_break_sound)
                     elif self.adjacent_mines == 0:
                         clear_grid(tile, dug)
+                        if self.sound_manager:
+                            self.sound_manager.play_sound(tile_break_sound)
 
                     self.image = pygame.transform.scale(self.image, (tile_size, tile_size))
                     self.state = "clicked"
@@ -244,12 +261,23 @@ def display_timer(screen, start_time):
     """
     timer_font = pygame.font.Font('assets/main_font.ttf', 30)  # Font for the timer text
     current_time = pygame.time.get_ticks()  # Get the current time in milliseconds
+    global elapsed_time
     elapsed_time = (current_time - start_time) // 1000  # Calculate elapsed time in seconds
     timer_text = timer_font.render(str(elapsed_time), True, (0, 255, 0))
     text_rect = timer_text.get_rect()
     text_rect.topright = (210, 308)  # Position the timer at the top-right corner of the screen
     screen.blit(timer_text, text_rect)  # Blit the timer text onto the screen
 
+
+def display_final_time(screen, final_time):
+    """
+    Display the final time on the screen.
+    """
+    font = pygame.font.Font('assets/main_font.ttf', 30)  # Font for the final time text
+    final_time_text = font.render(str(elapsed_time), True, (0, 255, 0))  # Convert final_time to string
+    text_rect = final_time_text.get_rect()
+    text_rect.center = (screen.get_width() // 2, screen.get_height() // 2)  # Position the text at the center of the screen
+    screen.blit(final_time_text, text_rect) # Blit the final time text onto the screen
 
 def convert_bomb_tile():
     for cube1 in tiles:
@@ -331,7 +359,6 @@ def mines_and_numbers(tiles, num_mines):
 
 
 def reset_grid():
-    print("reset")
 
     global clicked
     global resets
@@ -347,7 +374,6 @@ def reset_grid():
     mines_and_numbers(tiles, num_mines)
 
     resets += 1
-    print("resets:", resets)
 
     # If there's a clicked tile, update its state and image
     if clicked:
@@ -377,6 +403,7 @@ def main_menu():
     global num
     global menu
     menu = True
+    global sound_manager
     while menu == True:
         timer.tick(60)
         # Drawing the scrolling background
@@ -433,7 +460,6 @@ def main_menu():
 
                 elif selected_difficulty is None:
                     if back_button.draw(screen):
-                        print('BACK')
                         count = 0
                         start_clicked = False
                         clicked_button2 = home_button
@@ -445,17 +471,19 @@ def main_menu():
                 pygame.display.flip()
 
         elif exit_button.draw(screen) and clicked_button2 is not home_button:
-            print("Exit")
             pygame.quit()
             sys.exit()  # Use sys.exit() instead of exit()
 
         elif help_button.draw(screen):
-            print("HELP")
             help_section()
 
         elif mute_button.draw(screen):
-            print("Toggle Music")
             toggle_mute()
+
+        elif clicked_button2 is not None:
+            clicked_button2 = None
+
+        sound_button.draw(screen)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -464,7 +492,7 @@ def main_menu():
 
 
 def help_section():
-    global num
+    global num, count, clicked, clicked_button2
     current_index = 0
     while True:
         num -= 1
@@ -480,17 +508,24 @@ def help_section():
         if left_arrow.draw(screen):
             # Move to the next image
             if current_index != 0:
-                current_index = (current_index -1) % len(help_section_list)
+                current_index = (current_index - 1) % len(help_section_list)
+
+        if home_button2.draw(screen):
+            count = 0
+            clicked = None
+            clicked_button2 = home_button
+            dug.clear()
+
+            main_menu()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
         pygame.display.flip()
 
-
+win_displayed = False
 def game():
-    global tile_size, tile_gap, screen2, tiles, tile, num_mines, count, correct_flag, clicks, resets, board_border
-    print("START")
+    global tile_size, tile_gap, screen2, tiles, tile, num_mines, count, correct_flag, clicks, resets, board_border, active, win_displayed, sound_manager
     global looped_once
     looped_once = False
     tile_print = True
@@ -511,7 +546,7 @@ def game():
     for row in range(tiles_per_row):
         for col in range(tiles_per_row):
             tile = TileFunction(col * (tile_size + tile_gap), row * (tile_size + tile_gap),
-                                normal_tile, tile_size, tile_size)
+                                normal_tile, tile_size, tile_size, sound_manager, tile_break_sound)
             tiles.append(tile)
 
     # Randomly place mines and assort numbers
@@ -528,9 +563,10 @@ def game():
         # if all the mines are revealed the game ends
         all_mines_revealed = all(tile.image == bomb_tile for tile in tiles if tile.is_mine)
 
-        if count == num_mines:
+        if count >= 1:
             looped_once = True
             convert_bomb_tile()
+            active = False
 
         if not all_mines_revealed:
             for tile in tiles:  # Draws the tiles onto the screen2
@@ -562,16 +598,15 @@ def game():
         for event in pygame.event.get():
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 3:  # Right mouse button clicked
-                    right_click_pressed = True  # Set the flag
+                if event.button == 3 and flag_counter >= 1:  # Right mouse button clicked and also limits the number of flags put down
+                    right_click_pressed = True # Set the flag
 
                 if event.button == 1:
-                    # print("left clicked")  # Check if any action was performed
                     for tile in tiles:
                         if tile.rect.collidepoint(local_pos):  # Check which tile was clicked
                             if tile.is_mine and clicks != 0:  # if the tile clicked on was a mine
-
-                                print("You clicked on a mine!")
+                                if sound_manager:
+                                    sound_manager.play_sound(bomb_sound)
 
                                 for cube1 in tiles:  # reveals all the mines by iterating through the tiles list finding the mines and changing their image
                                     if cube1.is_mine:
@@ -580,7 +615,6 @@ def game():
                                         cube1.image = pygame.transform.scale(cube1.image, (tile_size, tile_size))
                                         cube1.state = 'clicked'
                                         count += 1
-                                        print(count)
 
                                     else:
                                         cube1.state = 'clicked'
@@ -597,11 +631,12 @@ def game():
                 for tile in tiles:
                     if tile.rect.collidepoint(local_pos):
                         if tile.state == "normal":  # Right-click to flag
+                            if sound_manager:
+                                sound_manager.play_sound(flag_sound)
                             tile.image = flag_tile  # changing the state to flag state
                             tile.image = pygame.transform.scale(tile.image,
                                                                 (tile_size, tile_size))  # resizing the image
                             tile.state = "flagged"  # Now it's flagged
-                            print("flagged")
                             if tile.is_mine:
                                 correct_flag += 1
                                 if clicks > 0:
@@ -612,27 +647,27 @@ def game():
                                     flag_counter -= 1
 
                         elif tile.state == "flagged":  # Right-click to unflag
+                            if sound_manager:
+                                sound_manager.play_sound(flag_sound)
                             tile.image = normal_tile  # changing state back to normal state
                             tile.image = pygame.transform.scale(tile.image,
                                                                 (tile_size, tile_size))  # resizing the image
                             tile.state = "normal"  # when the flag is unflagged
-                            print("unflagged")
                             if tile.is_mine:
                                 correct_flag -= 1
                                 if clicks > 0:
                                     flag_counter += 1
-                                print("correct flag:", correct_flag)
                             else:
                                 if clicks > 0:
                                     flag_counter += 1
+                            if sound_manager:
+                                sound_manager.play_sound(flag_sound)
 
             if correct_flag == num_mines and not win_displayed:  # Check if all flags are placed correctly
                 # Reveal all mines
                 win_game()
 
                 # Print "You win"
-                print("You win")
-
                 win_displayed = True
             clicked_tiles = 0
             for tile in tiles:
@@ -644,9 +679,6 @@ def game():
                 convert_bomb_tile()
 
                 win_game()
-
-                print("You win")
-                running = False
                 win_displayed = True
 
                 game_over == True
@@ -656,8 +688,11 @@ def game():
 
 def win_game():
     convert_bomb_tile()
+    if sound_manager:
+        sound_manager.play_sound(win_sound)
     screen2.blit(end_screen, (0, 0))
-    global num, count, clicked, dug, clicked, clicked_button2
+    global num, count, clicked, dug, clicked, clicked_button2, correct_flag, win_displayed, num_mines
+    final_time = None
     while True:
         num -= 1
         draw_bg2(bg_screen2)
@@ -668,22 +703,24 @@ def win_game():
                 pygame.quit()
                 sys.exit()
 
+        display_final_time(screen2, final_time if final_time is not None else elapsed_time)  # Display the updated elapsed time or final time
+
         if retry_button.draw(screen2):
-            print("Retry")
             count = 0
             clicked = None
             dug.clear()
+            correct_flag = 0
             game()
 
         if clicked is not None:
             clicked = None
 
         elif home_button.draw(screen2):
-            print("BACK")
             count = 0
             clicked = None
             clicked_button2 = home_button
             dug.clear()
+            correct_flag = 0
 
             main_menu()
 
@@ -691,6 +728,8 @@ def win_game():
 
 
 def end_game():
+    if sound_manager:
+        sound_manager.play_sound(lose_sound)
     convert_bomb_tile()
     # Blit the overlay surface onto the main screen
     screen2.blit(end_screen, (0, 0))
@@ -706,17 +745,12 @@ def end_game():
                 sys.exit()
 
         if retry_button.draw(screen2):
-            print("Retry")
             count = 0
             clicked = None
             dug.clear()
             game()
 
-        if clicked_button2 is not None:
-            clicked_button2 = None
-
         elif home_button.draw(screen2):
-            print("BACK")
             count = 0
             clicked = None
             clicked_button2 = home_button
